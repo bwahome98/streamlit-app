@@ -1,32 +1,27 @@
 import streamlit as st
-import os
 import re
 import datetime
 from operator import itemgetter
 from googleapiclient.discovery import build
-from google.auth.transport.requests import Request
-from google.auth import exceptions
 from google.oauth2 import service_account
 
 # Your Google Sheets spreadsheet details
 SPREADSHEET_ID = '1qhm1d8nUyckL5PIApqwOclg4JtzJD3j3bArWKabaGcg'  # Replace with your actual spreadsheet ID
 RANGE_NAME = 'PRIORITY!A1:B1000'  # Adjust to the actual range that captures both timestamp and destination
 
-# Path to your service account credentials JSON file
-json_file_path = 'C:/Users/USER/Documents/streamlit_app/credentials.json'
-
 # Global variable to keep track of potential total revenue for the day
 total_revenue = 0
 
-def authenticate_service_account(json_file_path):
-    """Authenticate using a service account."""
+def authenticate_service_account():
+    """Authenticate using service account credentials stored in Streamlit secrets."""
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            json_file_path,
+        # Authenticate using the credentials stored in Streamlit secrets
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
             scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
         )
         return credentials
-    except exceptions.DefaultCredentialsError as e:
+    except Exception as e:
         st.error(f"Error in authentication: {e}")
         raise
 
@@ -49,7 +44,7 @@ def is_within_hour_range(timestamp_str, start_hour, end_hour):
 def pull_and_rank_data_by_hour(start_hour, end_hour):
     """Pull data from Google Sheets, filter by specific hourly range, clean, and rank destinations."""
     global total_revenue
-    creds = authenticate_service_account(json_file_path)
+    creds = authenticate_service_account()
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
 
