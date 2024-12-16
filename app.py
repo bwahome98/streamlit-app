@@ -25,6 +25,7 @@ def authenticate_service_account():
         st.error(f"Error in authentication: {e}")
         raise
 
+
 def extract_price_from_destination(destination):
     """Extract the price from the format 'Destination (Price)'."""
     match = re.search(r"\((\d+)\s*KSH\)", destination, re.IGNORECASE)
