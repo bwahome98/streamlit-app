@@ -13,7 +13,7 @@ SPREADSHEET_ID = '1qhm1d8nUyckL5PIApqwOclg4JtzJD3j3bArWKabaGcg'  # Replace with 
 RANGE_NAME = 'PRIORITY!A1:B1000'  # Adjust to the actual range that captures both timestamp and destination
 
 # Path to your service account credentials JSON file
-json_file_path = 'C:/Users/USER/Documents/TRANSPORT BACKEND/credentials.json'
+json_file_path = 'C:/Users/USER/Documents/streamlit_app/credentials.json'
 
 # Global variable to keep track of potential total revenue for the day
 total_revenue = 0
