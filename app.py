@@ -111,19 +111,6 @@ def run_hourly_updates():
 
     st.write(f"\nPotential Total Revenue for the Day: {total_revenue} KSH")
 
-# Adding a title and centering it
-st.markdown("<h1 style='text-align: center; color: white;'>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
-
-# Streamlit button for refreshing data and centering the button
-st.markdown(
-    """
-    <div style='text-align: center;'>
-        <button onClick="window.location.reload();" class="stButton primary-button">Refresh Data</button>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# Streamlit button for refreshing data (this will trigger the update in Streamlit, not a full page reload)
+# Streamlit button for refreshing data
 if st.button('Refresh Data'):
     run_hourly_updates()  
