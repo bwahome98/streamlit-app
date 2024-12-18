@@ -65,6 +65,7 @@ RANGE_NAME = 'PRIORITY!A1:B1000'
 
 total_revenue = 0
 
+# Authentication using a service account
 def authenticate_service_account():
     try:
         credentials = service_account.Credentials.from_service_account_info(
@@ -76,6 +77,7 @@ def authenticate_service_account():
         st.error(f"Error in authentication: {e}")
         raise
 
+# Extract the price from the destination string (e.g., "Destination (500KSH)")
 def extract_price_from_destination(destination):
     match = re.search(r"\((\d+)\s*KSH\)", destination, re.IGNORECASE)
     if match:
@@ -83,10 +85,12 @@ def extract_price_from_destination(destination):
         return price
     return 0
 
+# Check if the timestamp falls within the given hourly range
 def is_within_hour_range(timestamp_str, start_hour, end_hour):
     timestamp = datetime.datetime.strptime(timestamp_str, '%m/%d/%Y %H:%M:%S')
     return start_hour <= timestamp.hour < end_hour
 
+# Pull and rank data from Google Sheets, calculate potential revenue
 def pull_and_rank_data_by_hour(start_hour, end_hour):
     global total_revenue
     creds = authenticate_service_account()
@@ -108,19 +112,25 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     destination_prices = {}
     hourly_revenue = 0
 
+    # Start processing rows (skip the header row)
     for row in values[1:]:
         if len(row) < 2:
-            continue
+            continue  # Skip incomplete rows
 
         timestamp_str, destination = row[0], row[1]
 
+        # Filter data by the given hourly range (e.g., 11 PM to 12 AM)
         if is_within_hour_range(timestamp_str, start_hour, end_hour):
+            # Extract price from the destination string
             price = extract_price_from_destination(destination)
+
+            # Clean the destination name by removing the price part (e.g., "Destination (Price)")
             clean_dest = re.sub(r" \(\d+KSH\)", "", destination)
 
             passenger_counts[clean_dest] = passenger_counts.get(clean_dest, 0) + 1
             destination_prices[clean_dest] = price
 
+    # Rank destinations by passenger count
     ranked_destinations = sorted(passenger_counts.items(), key=itemgetter(1), reverse=True)
 
     # Display ranking with responsive columns
@@ -145,6 +155,7 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     total_revenue += hourly_revenue
     return ranked_destinations
 
+# Run the function for each hourly interval between 11 PM and 6 AM
 def run_hourly_updates():
     global total_revenue
     total_revenue = 0
