@@ -126,15 +126,18 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     # Display ranking with responsive columns
     st.markdown(f"<div class='title-container'>Current Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:</div>", unsafe_allow_html=True)
     
-    # Use table for better consistency across all devices
-    table_data = []
+    # Define custom column headers
+    headers = ['Rank', 'Destination', 'Number of passengers', 'Potential revenue']
+    
+    # Create table data
+    table_data = [headers]  # Add headers first
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
         table_data.append([rank, destination, count, f"{revenue_for_destination} KSH"])
 
-    # Display data as a table
+    # Display data as a table without the index
     st.table(table_data)
 
     st.write(f"Potential Total Revenue for {start_hour}:00 - {end_hour}:00: {hourly_revenue} KSH", unsafe_allow_html=True)
@@ -168,4 +171,4 @@ st.markdown("<h1>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
 # Refresh button at the top
 if st.button('Refresh Data'):
     st.write("Fetching and ranking data...")
-    run_hourly_updates() 
+    run_hourly_updates()
