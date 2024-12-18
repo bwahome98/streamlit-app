@@ -37,6 +37,20 @@ st.markdown("""
         background-color: black !important;
     }
     
+    /* Custom column layout */
+    .stContainer > div {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid white;
+    }
+    .stContainer > div > div {
+        width: 33%;
+        text-align: left;
+    }
+
     /* Mobile styles */
     @media only screen and (max-width: 600px) {
         .title-container {
@@ -51,20 +65,6 @@ st.markdown("""
         }
         .stButton button {
             font-size: 12px;
-        }
-        /* Stack the columns vertically on mobile */
-        .block-container .stColumns {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-        .block-container .stColumns > div {
-            width: 30% !important;  /* Ensuring each column gets an equal width */
-            margin-bottom: 10px;
-        }
-        /* Fix column margins */
-        .block-container .stColumns > div + div {
-            margin-left: 5px;
         }
     }
     </style>
@@ -137,16 +137,20 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     # Display ranking with responsive columns
     st.markdown(f"<div class='title-container'>Current Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:</div>", unsafe_allow_html=True)
     
-    # Columns for destination, passengers, and revenue
-    col1, col2, col3 = st.columns([2, 2, 1])
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
 
-        col1.write(f"{rank}. {destination}", unsafe_allow_html=True)
-        col2.write(f"{count} passengers", unsafe_allow_html=True)
-        col3.write(f"Revenue: {revenue_for_destination} KSH", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div>
+                <div>{rank}. {destination}</div>
+                <div>{count} passengers</div>
+                <div>Revenue: {revenue_for_destination} KSH</div>
+            </div>
+            """, unsafe_allow_html=True
+        )
 
     st.write(f"Potential Total Revenue for {start_hour}:00 - {end_hour}:00: {hourly_revenue} KSH", unsafe_allow_html=True)
 
