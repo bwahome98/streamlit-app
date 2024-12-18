@@ -49,9 +49,14 @@ def is_within_hour_range(timestamp_str, start_hour, end_hour):
             st.write(f"Failed to parse timestamp: {timestamp_str}")
             return False  # Could not parse the timestamp
 
-        # Add more flexibility to time ranges or fix the exact hour logic.
-        if start_hour <= timestamp.hour < end_hour:
+        # Special case: Handle the 23:00 (11 PM) to 00:00 (midnight) range
+        if start_hour == 23 and end_hour == 0:
+            if timestamp.hour == 23 or timestamp.hour == 0:
+                return True
+        # Regular case
+        elif start_hour <= timestamp.hour < end_hour:
             return True
+
         return False
     except Exception as e:
         st.error(f"Error in time parsing: {e}")
