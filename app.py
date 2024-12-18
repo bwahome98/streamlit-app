@@ -31,15 +31,29 @@ st.markdown("""
         color: white;
         font-size: 24px;
     }
+    
+    /* Mobile styles */
     @media only screen and (max-width: 600px) {
         .title-container {
             font-size: 14px;
+            padding: 8px;
         }
         .content-container {
             font-size: 10px;
         }
         h1 {
             font-size: 20px;
+        }
+        .stButton button {
+            font-size: 12px;
+        }
+        /* Stack the columns vertically on mobile */
+        .block-container .stColumns {
+            display: block;
+        }
+        .block-container .stColumns > div {
+            width: 100% !important;
+            margin-bottom: 10px;
         }
     }
     </style>
@@ -109,14 +123,16 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
 
     ranked_destinations = sorted(passenger_counts.items(), key=itemgetter(1), reverse=True)
 
-    # Display ranking
+    # Display ranking with responsive columns
     st.markdown(f"<div class='title-container'>Current Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:</div>", unsafe_allow_html=True)
+    
+    # Columns for destination, passengers, and revenue
     col1, col2, col3 = st.columns([2, 2, 1])
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
-        
+
         col1.write(f"{rank}. {destination}", unsafe_allow_html=True)
         col2.write(f"{count} passengers", unsafe_allow_html=True)
         col3.write(f"Revenue: {revenue_for_destination} KSH", unsafe_allow_html=True)
@@ -153,5 +169,3 @@ st.markdown("<h1>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
 if st.button('Refresh Data'):
     st.write("Fetching and ranking data...")
     run_hourly_updates()
-
-
