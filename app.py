@@ -31,6 +31,11 @@ st.markdown("""
         color: white;
         font-size: 24px;
     }
+
+    /* Ensuring the black background applies across all elements */
+    .main {
+        background-color: black !important;
+    }
     
     /* Mobile styles */
     @media only screen and (max-width: 600px) {
@@ -49,11 +54,17 @@ st.markdown("""
         }
         /* Stack the columns vertically on mobile */
         .block-container .stColumns {
-            display: block;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
         }
         .block-container .stColumns > div {
-            width: 100% !important;
+            width: 30% !important;  /* Ensuring each column gets an equal width */
             margin-bottom: 10px;
+        }
+        /* Fix column margins */
+        .block-container .stColumns > div + div {
+            margin-left: 5px;
         }
     }
     </style>
