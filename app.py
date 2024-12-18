@@ -31,26 +31,7 @@ st.markdown("""
         color: white;
         font-size: 24px;
     }
-
-    /* Ensuring the black background applies across all elements */
-    .main {
-        background-color: black !important;
-    }
     
-    /* Custom column layout */
-    .stContainer > div {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid white;
-    }
-    .stContainer > div > div {
-        width: 33%;
-        text-align: left;
-    }
-
     /* Mobile styles */
     @media only screen and (max-width: 600px) {
         .title-container {
@@ -65,6 +46,14 @@ st.markdown("""
         }
         .stButton button {
             font-size: 12px;
+        }
+        /* Stack the columns vertically on mobile */
+        .block-container .stColumns {
+            display: block;
+        }
+        .block-container .stColumns > div {
+            width: 100% !important;
+            margin-bottom: 10px;
         }
     }
     </style>
@@ -137,20 +126,16 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     # Display ranking with responsive columns
     st.markdown(f"<div class='title-container'>Current Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:</div>", unsafe_allow_html=True)
     
+    # Use table for better consistency across all devices
+    table_data = []
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
+        table_data.append([rank, destination, count, f"{revenue_for_destination} KSH"])
 
-        st.markdown(
-            f"""
-            <div>
-                <div>{rank}. {destination}</div>
-                <div>{count} passengers</div>
-                <div>Revenue: {revenue_for_destination} KSH</div>
-            </div>
-            """, unsafe_allow_html=True
-        )
+    # Display data as a table
+    st.table(table_data)
 
     st.write(f"Potential Total Revenue for {start_hour}:00 - {end_hour}:00: {hourly_revenue} KSH", unsafe_allow_html=True)
 
@@ -183,4 +168,4 @@ st.markdown("<h1>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
 # Refresh button at the top
 if st.button('Refresh Data'):
     st.write("Fetching and ranking data...")
-    run_hourly_updates()
+    run_hourly_updates() 
