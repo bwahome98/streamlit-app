@@ -140,10 +140,16 @@ def run_hourly_updates():
     for start_hour, end_hour in hourly_intervals:
         pull_and_rank_data_by_hour(start_hour, end_hour)
 
+        # Add triple space between each hourly interval output
+        st.write("\n\n\n")
+
     st.write(f"\nPotential Total Revenue for the Day: {total_revenue} KSH")
+
+# Add a centered header for "TATU CITY TRANSPORT"
+st.markdown("<h1 style='text-align: center; color: white;'>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
 
 # Streamlit button for refreshing data
 if st.button('Refresh Data'):
-    run_hourly_updates() 
+    run_hourly_updates()
 
 
