@@ -35,11 +35,31 @@ def extract_price_from_destination(destination):
 
 def is_within_hour_range(timestamp_str, start_hour, end_hour):
     """Check if the timestamp falls within the given hourly range."""
-    timestamp = datetime.datetime.strptime(timestamp_str, '%m/%d/%Y %H:%M:%S')
+    try:
+        timestamp_formats = ['%m/%d/%Y %H:%M:%S', '%Y-%m-%d %H:%M:%S']  # Add flexibility in timestamp formats
+        timestamp = None
+        for fmt in timestamp_formats:
+            try:
+                timestamp = datetime.datetime.strptime(timestamp_str, fmt)
+                break  # Break if parsing was successful
+            except ValueError:
+                continue
 
-    if start_hour <= timestamp.hour < end_hour:
-        return True
-    return False
+        if not timestamp:
+            return False  # Could not parse the timestamp
+
+        # Special case: Handle the 23:00 (11 PM) to 00:00 (midnight) range
+        if start_hour == 23 and end_hour == 0:
+            if timestamp.hour == 23 or timestamp.hour == 0:
+                return True
+        # Regular case
+        elif start_hour <= timestamp.hour < end_hour:
+            return True
+
+        return False
+    except Exception as e:
+        st.error(f"Error in time parsing: {e}")
+        return False
 
 def pull_and_rank_data_by_hour(start_hour, end_hour):
     """Pull data from Google Sheets, filter by specific hourly range, clean, and rank destinations."""
@@ -78,14 +98,10 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
 
     ranked_destinations = sorted(passenger_counts.items(), key=itemgetter(1), reverse=True)
 
-    st.write(f"\nCurrent Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:")
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
-        st.write(f"{rank}. {destination}: {count} passengers, Potential Revenue: {revenue_for_destination} KSH")
-
-    st.write(f"Potential Total Revenue for {start_hour}:00 - {end_hour}:00: {hourly_revenue} KSH")
 
     total_revenue += hourly_revenue
 
@@ -111,6 +127,11 @@ def run_hourly_updates():
 
     st.write(f"\nPotential Total Revenue for the Day: {total_revenue} KSH")
 
+# Streamlit layout for the header
+st.markdown("<h1 style='text-align: center;'>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
+
 # Streamlit button for refreshing data
 if st.button('Refresh Data'):
-    run_hourly_updates()  
+    run_hourly_updates()
+
+
