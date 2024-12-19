@@ -1,9 +1,13 @@
 import streamlit as st
 import re
 import datetime
+import logging
 from operator import itemgetter
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+
+# Set up logging to suppress debug messages in the Streamlit UI
+logging.basicConfig(level=logging.INFO)  # Change to logging.DEBUG to see detailed logs in the console
 
 # Your Google Sheets spreadsheet details
 SPREADSHEET_ID = '1qhm1d8nUyckL5PIApqwOclg4JtzJD3j3bArWKabaGcg'  # Replace with your actual spreadsheet ID
@@ -22,7 +26,7 @@ def authenticate_service_account():
         )
         return credentials
     except Exception as e:
-        st.error(f"Error in authentication: {e}")
+        logging.error(f"Error in authentication: {e}")
         raise
 
 def extract_price_from_destination(destination):
@@ -46,6 +50,7 @@ def is_within_hour_range(timestamp_str, start_hour, end_hour):
                 continue
 
         if not timestamp:
+            logging.warning(f"Failed to parse timestamp: {timestamp_str}")
             return False  # Could not parse the timestamp
 
         # Special case: Handle the 23:00 (11 PM) to 00:00 (midnight) range
@@ -58,7 +63,7 @@ def is_within_hour_range(timestamp_str, start_hour, end_hour):
 
         return False
     except Exception as e:
-        st.error(f"Error in time parsing: {e}")
+        logging.error(f"Error in time parsing: {e}")
         return False
 
 def pull_and_rank_data_by_hour(start_hour, end_hour):
@@ -71,6 +76,7 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
     try:
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
         values = result.get('values', [])
+        logging.info(f"Fetched {len(values)} rows from the sheet.")  # Logging the output instead of displaying it
     except Exception as e:
         st.error(f"Error fetching data from Google Sheets: {e}")
         return
@@ -89,19 +95,28 @@ def pull_and_rank_data_by_hour(start_hour, end_hour):
 
         timestamp_str, destination = row[0], row[1]
 
+        # Log the processing of the row in the background
+        logging.debug(f"Processing row: Timestamp: {timestamp_str}, Destination: {destination}")
+
         if is_within_hour_range(timestamp_str, start_hour, end_hour):
             price = extract_price_from_destination(destination)
             clean_dest = re.sub(r" \(\d+KSH\)", "", destination)
 
             passenger_counts[clean_dest] = passenger_counts.get(clean_dest, 0) + 1
             destination_prices[clean_dest] = price
+        else:
+            logging.debug(f"Row skipped. Not in the time range {start_hour}:00 - {end_hour}:00")
 
     ranked_destinations = sorted(passenger_counts.items(), key=itemgetter(1), reverse=True)
 
+    st.write(f"\nCurrent Ranking of Destinations for {start_hour}:00 - {end_hour}:00 by Passenger Count:")
     for rank, (destination, count) in enumerate(ranked_destinations, start=1):
         price = destination_prices.get(destination, 0)
         revenue_for_destination = count * price
         hourly_revenue += revenue_for_destination
+        st.write(f"{rank}. {destination}: {count} passengers, Potential Revenue: {revenue_for_destination} KSH")
+
+    st.write(f"Potential Total Revenue for {start_hour}:00 - {end_hour}:00: {hourly_revenue} KSH")
 
     total_revenue += hourly_revenue
 
@@ -127,11 +142,8 @@ def run_hourly_updates():
 
     st.write(f"\nPotential Total Revenue for the Day: {total_revenue} KSH")
 
-# Streamlit layout for the header
-st.markdown("<h1 style='text-align: center;'>TATU CITY TRANSPORT</h1>", unsafe_allow_html=True)
-
 # Streamlit button for refreshing data
 if st.button('Refresh Data'):
-    run_hourly_updates()
+    run_hourly_updates() 
 
 
